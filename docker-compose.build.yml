@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+    nginx:
+        build: nginx
+    php7-cli:
+        build: php7-cli
+    php7-fpm:
+        build: php7-fpm
+    php7-fpm-dev:
+        build: php7-fpm-dev
+    mysql:
+        build: mysql
+    sphinx:
+        build: sphinx
+    smtp:
+        build: smtp

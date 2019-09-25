@@ -1,0 +1,5 @@
+/.idea
+/logs
+/data
+*.env
+*.gz

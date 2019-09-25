@@ -1,0 +1,8 @@
+
+# BACKUP
+15 */6 * * *    root    /usr/bin/bash /var/www/my-site.ru/bin/backup.sh
+
+# EVENTS
+*/5 * * * *     root    /usr/bin/php -f /var/www/my-site.ru/bitrix/php_interface/cron_events.php
+
+

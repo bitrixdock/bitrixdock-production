@@ -1,0 +1,10 @@
+update_production:
+  tags:
+  - production
+  script:
+    - cd /var/www/docker.my-site.ru && sudo git fetch origin master && sudo git add . && sudo git reset --hard origin/master
+    - chmod +x ./_build* && bash _build_push.sh
+  only:
+  - master
+  variables:
+    GIT_STRATEGY: none

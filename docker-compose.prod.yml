@@ -1,0 +1,106 @@
+version: '2'
+
+volumes:
+    mysite-site-mysql:
+        driver: local
+
+services:
+    nginx:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/nginx:${HASH}
+        links:
+            - php7-fpm
+        depends_on:
+            - php7-fpm
+        volumes:
+            - /var/www/my-site.ru:/var/www/my-site.ru
+            - /var/log/container-nginx:/var/log/nginx
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 80:80
+            - 443:443
+        networks:
+            - mysite
+        restart: unless-stopped
+    php7-cli:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/php7-cli:${HASH}
+        links:
+            - mysql
+            - memcached
+        depends_on:
+            - mysql
+            - memcached
+        volumes:
+            - /var/www/my-site.ru:/var/www/my-site.ru
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+    php7-fpm:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/php7-fpm:${HASH}
+        links:
+            - mysql
+            - memcached
+        depends_on:
+            - mysql
+            - memcached
+        volumes:
+            - /var/www/my-site.ru:/var/www/my-site.ru
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+    mysql:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/mysql:${HASH}
+        ports:
+            - 33061:3306
+        environment:
+            MYSQL_DATABASE: mysite
+            MYSQL_USER: mysite
+            MYSQL_PASSWORD: ""
+            MYSQL_ROOT_PASSWORD: ""
+        volumes:
+            - mysite-site-mysql:/var/lib/mysql
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+    memcached:
+        image: memcached:1.5-alpine
+        entrypoint:
+          - memcached
+          - --memory-limit=2048m
+          - --max-item-size=128m
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+    sphinx:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/sphinx:${HASH}
+        links:
+          - mysql
+        depends_on:
+          - mysql
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+    smtp:
+        image: registry.gitlab.com/vitams/docker.my-site.ru/smtp:${HASH}
+        environment:
+            MAILNAME: "mysite"
+            RELAY_NETWORKS: ":10.100.0.0/24"
+            IGNORE_LIMITS: "true"
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - mysite
+        restart: unless-stopped
+networks:
+  mysite:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.0.0/24
